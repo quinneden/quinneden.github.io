@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-FLAKE="nixos-hyprland-apple-silicon"
+FLAKE="nixos-plasma"
 HOME="/mnt/home/quinn"
 
 confirm() {
@@ -54,8 +54,8 @@ init() {
   confirm
   partition_disk &&
   mount_disks &&
-  init_etc &&
-  copy_files
+  init_etc
+  # copy_files
 }
 
 install_system() {
