@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-FLAKE="nixos-plasma"
+FLAKE="lazarus"
 HOME="/mnt/home/quinn"
 
 confirm() {
@@ -42,19 +42,20 @@ mount_disks() {
   mount /dev/disk/by-partuuid/`cat /proc/device-tree/chosen/asahi,efi-system-partition` /mnt/boot && sleep 0.2
 }
 
-init_etc() {
+init_dotdir() {
   echo "Cloning config..." && sleep 0.2
-  mkdir -p /mnt/etc && sleep 0.2
-  git clone https://github.com/quinneden/$FLAKE /mnt/etc/nixos && sleep 0.2
-  nixos-generate-config --root /mnt --show-hardware-configuration | tee /mnt/etc/nixos/hosts/main/hardware.nix && sleep 0.2
+  mkdir -p /mnt/home/quinn/.dotfiles && sleep 0.2
+  git clone https://github.com/quinneden/$FLAKE /mnt/home/quinn/.dotfile && sleep 0.2
+  nixos-generate-config --root /mnt && cp /mnt/etc/nixos/hardware-configuration.nix /mnt/home/quinn/.dotfiles/hosts/macmini/hardware-configuration.nix sleep 0.2
+  chown -R 'quinn:users' /mnt/home/quinn/
 }
 
 init() {
   echo "Initiate?"
   confirm
-  partition_disk &&
+  # partition_disk &&
   mount_disks &&
-  init_etc
+  init_dotdir
   # copy_files
 }
 
@@ -64,10 +65,8 @@ install_system() {
   systemctl restart systemd-timesyncd && sleep 0.2
   echo -e "\nInstalling...\n"
   test -e /tmp && mount -o remount,size=15G /tmp || true
-  test -e /run/user/1000 && mount -o remount,size=15G /run/user/1000 || true
   test -e /run/user/0 && mount -o remount,size=15G /run/user/0 || true
-  nix --extra-experimental-features 'nix-command flakes' flake update /mnt/etc/nixos && sleep 0.2
-  nixos-install --flake /mnt/etc/nixos#main --impure -j4
+  nixos-install --flake /mnt/home/quinn/.dotfiles#macmini --impure -j4
 }
 
 init && install_system && exit 0
